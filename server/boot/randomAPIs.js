@@ -26,7 +26,9 @@ module.exports = function(app) {
   router.get('/pmi-acp-agile-project-managers-form', agileProjectManagersForm);
   router.get('/nonprofits', nonprofits);
   router.get('/nonprofits-form', nonprofitsForm);
-  router.get('/unsubscribe/:email', unsubscribe);
+  router.get('/unsubscribe/:email', unsubscribeMonthly);
+  router.get('/unsubscribe-notifications/:email', unsubscribeNotifications);
+  router.get('/unsubscribe-quincy/:email', unsubscribeQuincy);
   router.get('/unsubscribed', unsubscribed);
   router.get('/get-started', getStarted);
   router.get('/submit-cat-photo', submitCatPhoto);
@@ -38,6 +40,7 @@ module.exports = function(app) {
   router.get('/all-stories', showAllTestimonials);
   router.get('/terms', terms);
   router.get('/privacy', privacy);
+  router.get('/how-nonprofit-projects-work', howNonprofitProjectsWork);
   router.get('/code-of-conduct', codeOfConduct);
   router.get('/academic-honesty', academicHonesty);
 
@@ -183,6 +186,12 @@ module.exports = function(app) {
       });
   }
 
+  function howNonprofitProjectsWork(req, res) {
+      res.render('resources/how-nonprofit-projects-work', {
+          title: 'How our nonprofit projects work'
+      });
+  }
+
   function codeOfConduct(req, res) {
       res.render('resources/code-of-conduct', {
           title: 'Code of Conduct'
@@ -276,23 +285,69 @@ module.exports = function(app) {
   }
 
   function twitch(req, res) {
-    res.render('resources/twitch', {
-      title: 'Watch us code on Twitch.tv and LiveCoding.tv'
+    res.redirect('https://twitch.tv/freecodecamp');
+  }
+
+  function unsubscribeMonthly(req, res, next) {
+    req.checkParams('email', 'Must send a valid email').isEmail();
+    return User.findOne({ where: { email: req.params.email } }, (err, user) => {
+      if (err) { return next(err); }
+      if (!user) {
+        req.flash('info', {
+          msg: 'Email address not found. ' +
+          'Please update your Email preferences from your profile.'
+        });
+        return res.redirect('/map');
+      }
+      return user.updateAttribute('sendMonthlyEmail', false, (err) => {
+        if (err) { return next(err); }
+        req.flash('info', {
+          msg: 'We\'ve successfully updated your Email preferences.'
+        });
+        return res.redirect('/unsubscribed');
+      });
     });
   }
 
-  function unsubscribe(req, res, next) {
-    User.findOne({ where: { email: req.params.email } }, function(err, user) {
-      if (user) {
-        if (err) { return next(err); }
-        user.sendMonthlyEmail = false;
-        return user.save(function() {
-          if (err) { return next(err); }
-          return res.redirect('/unsubscribed');
+  function unsubscribeNotifications(req, res, next) {
+    req.checkParams('email', 'Must send a valid email').isEmail();
+    return User.findOne({ where: { email: req.params.email } }, (err, user) => {
+      if (err) { return next(err); }
+      if (!user) {
+        req.flash('info', {
+          msg: 'Email address not found. ' +
+          'Please update your Email preferences from your profile.'
         });
-      } else {
-        return res.redirect('/unsubscribed');
+        return res.redirect('/map');
       }
+      return user.updateAttribute('sendNotificationEmail', false, (err) => {
+        if (err) { return next(err); }
+        req.flash('info', {
+          msg: 'We\'ve successfully updated your Email preferences.'
+        });
+        return res.redirect('/unsubscribed');
+      });
+    });
+  }
+
+  function unsubscribeQuincy(req, res, next) {
+    req.checkParams('email', 'Must send a valid email').isEmail();
+    return User.findOne({ where: { email: req.params.email } }, (err, user) => {
+      if (err) { return next(err); }
+      if (!user) {
+        req.flash('info', {
+          msg: 'Email address not found. ' +
+          'Please update your Email preferences from your profile.'
+        });
+        return res.redirect('/map');
+      }
+      return user.updateAttribute('sendQuincyEmail', false, (err) => {
+        if (err) { return next(err); }
+        req.flash('info', {
+          msg: 'We\'ve successfully updated your Email preferences.'
+        });
+        return res.redirect('/unsubscribed');
+      });
     });
   }
 

@@ -57,9 +57,8 @@ export class Lecture extends React.Component {
     return transcript.map((line, index) => (
       <p
         className='lead text-left'
-        key={ dashedName + index }>
-        { line }
-      </p>
+        dangerouslySetInnerHTML={{__html: line}}
+        key={ dashedName + index } />
     ));
   }
 
